@@ -472,7 +472,7 @@ fn main() {
         2.0                         // Índice de refracción (ajustado a 1.0 para superficies opacas)
     ).with_textures(vec![wood_plank_texture.clone(), wood_plank_texture ]);
 
-    let stone_texture = Texture::load("assets/stone_block.jpg").expect("Failed to load stone texture");
+    let stone_texture = Texture::load("assets/bee_nest_top.png").expect("Failed to load stone texture");
 
     // Portal animado
 use std::time::Instant;
@@ -651,7 +651,7 @@ Cube { min: Vec3::new(0.5, 0.0, -2.6), max: Vec3::new(0.7, 2.0, -1.9), material:
     const MIN_ZOOM: f32 = 10.0;
 
 
-    let stone_texture = Texture::load("assets/stone_block.jpg").expect("Failed to load stone texture");
+    let stone_texture = Texture::load("assets/bee_nest_top.png").expect("Failed to load stone texture");
 
 
     let mut day_night_cycle = DayNightCycle::new();
@@ -696,10 +696,10 @@ Cube { min: Vec3::new(0.5, 0.0, -2.6), max: Vec3::new(0.7, 2.0, -1.9), material:
     }
 
     // 🔆 Control manual del ciclo día/noche
-    if window.is_key_down(Key::Q) {
+    if window.is_key_down(Key::O) {
         day_night.update(-0.005);
     }
-    if window.is_key_down(Key::E) {
+    if window.is_key_down(Key::P) {
         day_night.update(0.005);
     }
 
