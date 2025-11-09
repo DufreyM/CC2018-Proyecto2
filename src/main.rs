@@ -45,30 +45,35 @@ fn reflect(incident: &Vec3, normal: &Vec3) -> Vec3 {
 
 
 fn refract(incident: &Vec3, normal: &Vec3, eta_t: f32) -> Vec3 {
-    let cosi = -incident.dot(normal).max(-1.0).min(1.0);
-   
-    let (n_cosi, eta, n_normal);
+    // Limitar el coseno entre -1 y 1 con paréntesis explícitos
+    let mut cosi = incident.dot(normal);
+    cosi = cosi.max(-1.0).min(1.0);
 
+    // Variables mutables con tipos explícitos
+    let mut n_cosi: f32 = 0.0;
+    let mut eta: f32 = 1.0;
+    let mut n_normal: Vec3 = *normal;
 
     if cosi < 0.0 {
         // Ray is entering the object
         n_cosi = -cosi;
         eta = 1.0 / eta_t;
-        n_normal = -normal;
+        n_normal = -(*normal);
     } else {
         // Ray is leaving the object
         n_cosi = cosi;
         eta = eta_t;
         n_normal = *normal;
     }
-   
+
     let k = 1.0 - eta * eta * (1.0 - n_cosi * n_cosi);
-   
+
     if k < 0.0 {
-        // Total internal reflection
+        // Total internal reflection -> devolver el vector reflejado
         reflect(incident, &n_normal)
     } else {
-        eta * incident + (eta * n_cosi - k.sqrt()) * n_normal
+        // Fórmula de refracción (Snell)
+        eta * *incident + (eta * n_cosi - k.sqrt()) * n_normal
     }
 }
 
@@ -205,7 +210,7 @@ pub fn cast_ray(
     let mut reflect_color = Color::black();
     let reflectivity = intersect.material.properties[2];
     if reflectivity > 0.0 {
-        let reflect_dir = reflect(&ray_direction, &intersect.normal).normalize();
+        let reflect_dir = normalize(&reflect(&ray_direction, &intersect.normal));
         let reflect_origin = offset_origin(&intersect, &reflect_dir);
         reflect_color = cast_ray(&reflect_origin, &reflect_dir, objects, lights, ambient_color, depth + 1);
     }
@@ -215,7 +220,7 @@ pub fn cast_ray(
     let mut refract_color = Color::black();
     let transparency = intersect.material.properties[3];
     if transparency > 0.0 {
-        let refract_dir = refract(&ray_direction, &intersect.normal, intersect.material.refractive_index);
+        let refract_dir = normalize(&refract(&ray_direction, &intersect.normal, intersect.material.refractive_index));
         let refract_origin = offset_origin(&intersect, &refract_dir);
         refract_color = cast_ray(&refract_origin, &refract_dir, objects, lights, ambient_color, depth + 1);
     }
@@ -432,6 +437,7 @@ fn main() {
     let grass_top_texture = Texture::load("assets/UP_GRASSTEXTURE.jpg").expect("Failed to load grass top texture");
     let dirt_side_texture = Texture::load("assets/SIDE_GRASSTEXTURE.jpg").expect("Failed to load dirt side texture");
 
+    let portal_texture = Texture::load("assets/end_portal.png").expect("Failed to load portal texture");
 
     // Define el material de césped
     let grass_texture = Texture::load("assets/UP_GRASSTEXTURE.jpg").expect("Failed to load grass texture");
@@ -456,6 +462,40 @@ fn main() {
     ).with_textures(vec![wood_plank_texture.clone(), wood_plank_texture ]);
 
     let stone_texture = Texture::load("assets/stone_block.jpg").expect("Failed to load stone texture");
+
+    // Portal animado
+use std::time::Instant;
+let start_time = Instant::now();
+
+let portal_texture = Texture::load("assets/end_portal.png").expect("Failed to load portal texture");
+
+let elapsed = start_time.elapsed().as_secs_f32();
+let pulse = (elapsed * 2.0).sin() * 0.5 + 0.5; // efecto de "respiración" del portal
+let dynamic_emission = Color::new(
+    (100.0 * pulse) as u8,
+    0,
+    (255.0 * pulse) as u8,
+);
+
+// Material base del portal
+let PORTAL = Material::new(
+    Color::new(100, 0, 200),
+    100.0,
+    [0.1, 0.8, 0.2, 0.6], // un poco más transparente (antes era 0.4)
+    1.25,
+)
+.with_textures(vec![portal_texture.clone()])
+.with_emission(dynamic_emission);
+
+// Cubos brillantes alrededor del portal
+let PORTAL_BORDER = Material::new(
+    Color::new(200, 0, 255),
+    90.0,
+    [0.1, 0.8, 0.5, 0.3],
+    1.2,
+)
+.with_emission(Color::new(180, 0, 255));
+
 
     let STONE: Material = Material::new(
     Color::new(128, 128, 128),  // Color gris típico de la piedra
@@ -500,9 +540,25 @@ fn main() {
     ).with_textures(vec![glowstone_texture.clone()])
      .with_emission(Color::new(255, 255, 150)); // Mantenemos la emisión fuerte
 
+    
+
     // Define los objetos que componen el portal
     let objects = [
-        
+        // Portal mágico enfrente de la casa
+    // Portal mágico con marco
+Cube { 
+    min: Vec3::new(-0.5, 0.0, -2.5), 
+    max: Vec3::new(0.5, 2.0, -2.0), 
+    material: PORTAL.clone() 
+},
+
+// Cubos del marco del portal (bordes superiores, inferiores y laterales)
+Cube { min: Vec3::new(-0.7, -0.2, -2.6), max: Vec3::new(0.7, 0.0, -1.9), material: PORTAL_BORDER.clone() }, // base
+Cube { min: Vec3::new(-0.7, 2.0, -2.6), max: Vec3::new(0.7, 2.2, -1.9), material: PORTAL_BORDER.clone() }, // parte superior
+Cube { min: Vec3::new(-0.7, 0.0, -2.6), max: Vec3::new(-0.5, 2.0, -1.9), material: PORTAL_BORDER.clone() }, // lado izquierdo
+Cube { min: Vec3::new(0.5, 0.0, -2.6), max: Vec3::new(0.7, 2.0, -1.9), material: PORTAL_BORDER.clone() }, // lado derecho
+
+
         Cube { min: Vec3::new(-4.0, -0.5, -4.0), max: Vec3::new(4.0, 0.0, 4.0), material: GRASS.clone() }, // Base de cesped
        
       // Pared trasera
