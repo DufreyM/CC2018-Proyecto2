@@ -13,8 +13,9 @@ mod light;
 mod material;
 mod cube;
 mod texture;
+mod obj_loader;
 
-
+use obj_loader::ObjModel;
 use framebuffer::Framebuffer;
 use color::Color;
 use ray_intersect::{Intersect, RayIntersect, CubeFace};
@@ -416,6 +417,16 @@ fn main() {
         0.0,
     );
 
+    let sun_model = ObjModel::load("assets/sphere.obj");
+    let mut day_night = DayNightCycle::new();
+
+    let mut sun_material = Material::new(
+        Color::new(255, 255, 200),
+        100.0,
+        [0.9, 0.3, 0.0, 0.0],
+        1.0,
+    ).with_emission(Color::new(255, 255, 180));
+
 
     let ivory = Material::new(
         Color::new(100, 100, 80),
@@ -647,72 +658,69 @@ Cube { min: Vec3::new(0.5, 0.0, -2.6), max: Vec3::new(0.7, 2.0, -1.9), material:
 
 
     while window.is_open() {
-        // Escuchar entradas
-        if window.is_key_down(Key::Escape) {
-            break;
-        }
-
-
-        // Si presionas la tecla W, la cámara se acerca
-        if window.is_key_down(Key::W) {
-            if camera.eye.z - zoom_speed > MAX_ZOOM {
-                camera.eye.z -= zoom_speed;
-            } else {
-                camera.eye.z = MAX_ZOOM;
-            }
-        }
-   
-        // Si presionas la tecla S, la cámara se aleja
-        if window.is_key_down(Key::S) {
-            if camera.eye.z + zoom_speed < MIN_ZOOM {
-                camera.eye.z += zoom_speed;
-            } else {
-                camera.eye.z = MIN_ZOOM;
-            }
-        }
-        // Controles de órbita de la cámara
-        if window.is_key_down(Key::Left) {
-            camera.orbit(rotation_speed, 0.0);
-        }
-        if window.is_key_down(Key::Right) {
-            camera.orbit(-rotation_speed, 0.0);
-        }
-        if window.is_key_down(Key::Up) {
-            camera.orbit(0.0, -rotation_speed);
-        }
-        if window.is_key_down(Key::Down) {
-            camera.orbit(0.0, rotation_speed);
-        }
-
-
-        if window.is_key_down(Key::Q) {
-            day_night_cycle.update(-0.005); // Avanzar hacia la noche
-        }
-        if window.is_key_down(Key::E) {
-            day_night_cycle.update(0.005);  // Avanzar hacia el día
-        }
-
-
-        let ambient_color = day_night_cycle.get_current_color();
-        let light_intensity = day_night_cycle.get_light_intensity();
-
-
-        // Actualizar la luz principal (sol)
-        lights[0].position = day_night_cycle.sun_position;
-        lights[0].color = ambient_color;
-        lights[0].intensity = light_intensity * 2.0; // Ajusta este factor según sea necesario
-
-
-        // Dibuja los objetos
-        render(&mut framebuffer, &objects, &camera, &lights, &ambient_color);
-
-
-        // Actualiza la ventana con el contenido del framebuffer
-        window
-            .update_with_buffer(&framebuffer.buffer, framebuffer_width, framebuffer_height)
-            .unwrap();
-
-
-        std::thread::sleep(frame_delay);
+    // Escucha salida
+    if window.is_key_down(Key::Escape) {
+        break;
     }
+
+    // 🔆 Actualiza ciclo día/noche
+    day_night.update(0.002);
+
+    // 🔆 Calcula color y posición del sol
+    let ambient_color = day_night.get_current_color();
+    let sun_pos = day_night.sun_position * 2.0;
+
+    // 🔆 Luz principal (sol)
+    lights[0].position = sun_pos;
+    lights[0].color = Color::new(255, 255, 200);
+    lights[0].intensity = day_night.get_light_intensity() * 4.0;
+
+    // 🔆 Controles de cámara
+    if window.is_key_down(Key::W) {
+        camera.eye.z = (camera.eye.z - zoom_speed).max(MAX_ZOOM);
+    }
+    if window.is_key_down(Key::S) {
+        camera.eye.z = (camera.eye.z + zoom_speed).min(MIN_ZOOM);
+    }
+    if window.is_key_down(Key::Left) {
+        camera.orbit(rotation_speed, 0.0);
+    }
+    if window.is_key_down(Key::Right) {
+        camera.orbit(-rotation_speed, 0.0);
+    }
+    if window.is_key_down(Key::Up) {
+        camera.orbit(0.0, -rotation_speed);
+    }
+    if window.is_key_down(Key::Down) {
+        camera.orbit(0.0, rotation_speed);
+    }
+
+    // 🔆 Control manual del ciclo día/noche
+    if window.is_key_down(Key::Q) {
+        day_night.update(-0.005);
+    }
+    if window.is_key_down(Key::E) {
+        day_night.update(0.005);
+    }
+
+    // 🔆 Render general
+    render(&mut framebuffer, &objects, &camera, &lights, &ambient_color);
+
+    // 🔆 Dibuja el sol
+    for vertex in &sun_model.vertices {
+        let pos = *vertex * 0.5 + sun_pos;
+        framebuffer.set_current_color(Color::new(255, 255, 120).to_hex());
+        framebuffer.point(
+            (pos.x * 80.0 + framebuffer.width as f32 / 2.0) as usize,
+            (pos.y * 80.0 + framebuffer.height as f32 / 2.0) as usize,
+        );
+    }
+
+    // 🔆 Actualiza la ventana
+    window
+        .update_with_buffer(&framebuffer.buffer, framebuffer.width, framebuffer.height)
+        .unwrap();
+
+    std::thread::sleep(frame_delay);
+}
 }
