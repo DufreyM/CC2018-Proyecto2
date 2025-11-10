@@ -390,7 +390,7 @@ fn main() {
 
     let mut framebuffer = Framebuffer::new(framebuffer_width, framebuffer_height);
     let mut window = Window::new(
-        "Rust Graphics - Raytracer Example",
+        "Leonardo Mejía - Hansel y Gretel House",
         window_width,
         window_height,
         WindowOptions::default(),
@@ -462,7 +462,7 @@ fn main() {
     ).with_textures(vec![grass_top_texture, dirt_side_texture]);
 
 
-    let wood_plank_texture = Texture::load("assets/wood_plank.jpg").expect("Failed to load wood plank texture");
+    let wood_plank_texture = Texture::load("assets/cake_top.png").expect("Failed to load wood plank texture");
 
 
     let WOOD: Material = Material::new(
