@@ -515,7 +515,7 @@ let PORTAL_BORDER = Material::new(
     1.0                         // Índice de refracción para superficies opacas
 ).with_textures(vec![stone_texture.clone()]);  // Usa la misma textura para todas las caras
     
-    let tree_plank_texture = Texture::load("assets/wood_rawplank.jpg").expect("Failed to load rawtree plank texture");
+    let tree_plank_texture = Texture::load("assets/tallo.png").expect("Failed to load rawtree plank texture");
 
     let TREEWOOD: Material = Material::new(
         Color::new(139, 69, 19),    // Color marrón típico de la madera
@@ -524,7 +524,7 @@ let PORTAL_BORDER = Material::new(
         1.0                         // Índice de refracción (ajustado a 1.0 para superficies opacas)
     ).with_textures(vec![tree_plank_texture.clone()]);
 
-    let leaves_texture = Texture::load("assets/leaves_texture.jpg").expect("Failed to load leaves  texture");
+    let leaves_texture = Texture::load("assets/hongo.png").expect("Failed to load leaves  texture");
 
     let LEAVES: Material = Material::new(
         Color::new(34, 139, 34),    // Color verde
@@ -541,6 +541,16 @@ let PORTAL_BORDER = Material::new(
     1.0                         // Índice de refracción típico para el vidrio
 );
     
+let azale_texture = Texture::load("assets/azalea.png").expect("Failed to load azale texture");
+
+let AZALE: Material = Material::new(
+    Color::new(255, 182, 193), // color rosado base
+    20.0,                      // brillo moderado
+    [0.7, 0.2, 0.0, 0.0],      // difuso, especular, reflectividad, transparencia
+    1.0
+).with_textures(vec![azale_texture.clone()]);
+
+
     let glowstone_texture = Texture::load("assets/glowstone_texture.jpg").expect("Failed to load glowstone texture");
 
     let GLOWSTONE: Material = Material::new(
@@ -557,6 +567,16 @@ let PORTAL_BORDER = Material::new(
     let objects = [
         // Portal mágico enfrente de la casa
     // Portal mágico con marco
+    // Flores azale alrededor del árbol
+Cube { min: Vec3::new(-2.8, 0.0, 2.5), max: Vec3::new(-2.6, 0.2, 2.7), material: AZALE.clone() },
+Cube { min: Vec3::new(-3.2, 0.0, 3.2), max: Vec3::new(-3.0, 0.2, 3.4), material: AZALE.clone() },
+Cube { min: Vec3::new(-2.9, 0.0, 3.6), max: Vec3::new(-2.7, 0.2, 3.8), material: AZALE.clone() },
+Cube { min: Vec3::new(-3.3, 0.0, 2.8), max: Vec3::new(-3.1, 0.2, 3.0), material: AZALE.clone() },
+// Flores frente a la casa
+Cube { min: Vec3::new(-1.0, 0.0, 0.5), max: Vec3::new(-0.8, 0.2, 0.7), material: AZALE.clone() },
+Cube { min: Vec3::new(1.0, 0.0, 0.5), max: Vec3::new(1.2, 0.2, 0.7), material: AZALE.clone() },
+Cube { min: Vec3::new(0.0, 0.0, 0.8), max: Vec3::new(0.2, 0.2, 1.0), material: AZALE.clone() },
+
 Cube { 
     min: Vec3::new(-0.5, 0.0, -2.5), 
     max: Vec3::new(0.5, 2.0, -2.0), 
