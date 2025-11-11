@@ -1,5 +1,7 @@
 # 🌌 Proyecto 3D — Escena interactiva en Rust
 
+VIDEO: https://www.canva.com/design/DAG4QCyqexs/xcfFpqeFKOVcHPNWEEGSkw/watch?utm_content=DAG4QCyqexs&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h9e49c4a28a 
+
 ---
 
 ## Ejecución
